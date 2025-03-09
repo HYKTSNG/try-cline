@@ -6,30 +6,70 @@ interface MangaPanel {
   text: string;
 }
 
+interface PreviewImage {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
+
 function App() {
   const [panels, setPanels] = useState<MangaPanel[]>([]);
   const [currentText, setCurrentText] = useState('');
+  const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     
-    const file = e.target.files[0];
-    const imageUrl = URL.createObjectURL(file);
+    // Create preview images
+    const newPreviewImages: PreviewImage[] = Array.from(e.target.files).map((file, index) => ({
+      id: `preview-${Date.now()}-${index}`,
+      file,
+      previewUrl: URL.createObjectURL(file)
+    }));
     
-    const newPanel: MangaPanel = {
-      id: Date.now().toString(),
-      imageUrl,
-      text: currentText
-    };
+    setPreviewImages(newPreviewImages);
+  };
+  
+  const handleAddSelectedImages = () => {
+    if (previewImages.length === 0) return;
     
-    setPanels([...panels, newPanel]);
+    // Create new panels from preview images
+    const newPanels: MangaPanel[] = previewImages.map((preview, index) => ({
+      id: `panel-${Date.now()}-${index}`,
+      imageUrl: preview.previewUrl,
+      text: index === 0 ? currentText : ''
+    }));
+    
+    // Add all new panels to the existing panels
+    setPanels([...panels, ...newPanels]);
+    
+    // Clear preview and text
+    setPreviewImages([]);
     setCurrentText('');
     
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+  
+  const removePreviewImage = (id: string) => {
+    setPreviewImages(previewImages.filter(image => image.id !== id));
+  };
+  
+  const movePreviewImageUp = (index: number) => {
+    if (index === 0) return;
+    const newPreviewImages = [...previewImages];
+    [newPreviewImages[index], newPreviewImages[index - 1]] = [newPreviewImages[index - 1], newPreviewImages[index]];
+    setPreviewImages(newPreviewImages);
+  };
+  
+  const movePreviewImageDown = (index: number) => {
+    if (index === previewImages.length - 1) return;
+    const newPreviewImages = [...previewImages];
+    [newPreviewImages[index], newPreviewImages[index + 1]] = [newPreviewImages[index + 1], newPreviewImages[index]];
+    setPreviewImages(newPreviewImages);
   };
 
   const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -78,21 +118,79 @@ function App() {
           />
         </div>
         
-        <div className="flex items-center justify-center">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            ref={fileInputRef}
-            className="hidden"
-            id="image-upload"
-          />
-          <label 
-            htmlFor="image-upload"
-            className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700 transition"
-          >
-            画像をアップロード
-          </label>
+        <div className="flex flex-col items-center">
+          <div className="mb-4">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              ref={fileInputRef}
+              className="hidden"
+              id="image-upload"
+            />
+            <label 
+              htmlFor="image-upload"
+              className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700 transition"
+            >
+              画像を選択（複数可）
+            </label>
+          </div>
+          
+          {previewImages.length > 0 && (
+            <div className="w-full mt-4">
+              <h3 className="text-lg font-medium mb-2">選択された画像 ({previewImages.length}枚)</h3>
+              
+              <div className="space-y-4 mb-4">
+                {previewImages.map((image, index) => (
+                  <div key={image.id} className="flex bg-gray-700 rounded-lg overflow-hidden">
+                    <div className="w-24 h-24 flex-shrink-0">
+                      <img 
+                        src={image.previewUrl} 
+                        alt={`Preview ${index + 1}`} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-grow p-2 flex items-center">
+                      <span className="text-sm font-medium">画像 {index + 1}</span>
+                    </div>
+                    <div className="p-2 flex items-center space-x-1">
+                      <button 
+                        onClick={() => movePreviewImageUp(index)}
+                        disabled={index === 0}
+                        className="px-2 py-1 bg-gray-600 rounded disabled:opacity-50"
+                        title="上に移動"
+                      >
+                        ↑
+                      </button>
+                      <button 
+                        onClick={() => movePreviewImageDown(index)}
+                        disabled={index === previewImages.length - 1}
+                        className="px-2 py-1 bg-gray-600 rounded disabled:opacity-50"
+                        title="下に移動"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() => removePreviewImage(image.id)}
+                        className="px-2 py-1 bg-red-600 rounded"
+                        title="削除"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <button
+                onClick={handleAddSelectedImages}
+                className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+              >
+                選択した画像をマンガに追加
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
