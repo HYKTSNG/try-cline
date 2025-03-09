@@ -1,0 +1,31 @@
+
+# Technology stack and each version
+
+- React
+- TypeScript
+- pnpm
+- Tailwind CSS
+
+# Coding standards
+
+## CSS
+
+- Use Tailwind CSS instead; do _NOT_ use plain CSS.
+
+# Linter
+
+- ESLint
+
+# Formatter
+
+Basically, let Biome format the file.
+Only files that Biome does not support, Prettier to format them.
+
+- Biome
+  - JavaScript (`.js`, `.jsx`, `.mjs`, `.cjs`)
+  - TypeScript (`.ts`, `.tsx`)
+  - JSON (`.json`, `.jsonc`)
+  - HTML (`.html`)
+- Prettier for other file
+  - Markdown (`.md`, `.mdx`)
+  - YAML (`.yaml`)
