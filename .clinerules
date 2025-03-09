@@ -1,4 +1,3 @@
-
 # Technology stack and each version
 
 - React
@@ -29,3 +28,7 @@ Only files that Biome does not support, Prettier to format them.
 - Prettier for other file
   - Markdown (`.md`, `.mdx`)
   - YAML (`.yaml`)
+
+# File Organization
+
+- Files should be organized by component. Each component should reside in its own file.
