@@ -12,7 +12,10 @@ interface PreviewImage {
   previewUrl: string;
 }
 
+type View = 'upload' | 'preview';
+
 function App() {
+  const [currentView, setCurrentView] = useState<View>('upload');
   const [panels, setPanels] = useState<MangaPanel[]>([]);
   const [currentText, setCurrentText] = useState('');
   const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
@@ -100,9 +103,25 @@ function App() {
     setPanels(newPanels);
   };
 
-  return (
+  // Navigation functions
+  const goToUploadScreen = () => setCurrentView('upload');
+  const goToPreviewScreen = () => setCurrentView('preview');
+
+  // Upload Screen Component
+  const UploadScreen = () => (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold text-center mb-8">マンガクリエーター</h1>
+      
+      <div className="flex justify-between mb-6">
+        <h2 className="text-2xl font-semibold">画像アップロード</h2>
+        <button 
+          onClick={goToPreviewScreen}
+          disabled={panels.length === 0}
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          プレビュー画面へ
+        </button>
+      </div>
       
       <div className="mb-8 p-6 bg-gray-800 rounded-lg">
         <h2 className="text-xl font-semibold mb-4">新しいパネルを追加</h2>
@@ -249,32 +268,53 @@ function App() {
           </div>
         </div>
       )}
+    </div>
+  );
 
-      {panels.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">プレビュー</h2>
-          <div className="bg-white p-4 rounded-lg">
-            <div className="max-w-2xl mx-auto">
-              {panels.map((panel, index) => (
-                <div key={panel.id} className="mb-4 relative">
-                  <img 
-                    src={panel.imageUrl} 
-                    alt={`Panel ${index + 1}`} 
-                    className="w-full h-auto"
-                  />
-                  {panel.text && (
-                    <div className="absolute top-4 right-4 max-w-[70%] bg-white text-black p-3 rounded-lg border-2 border-black">
-                      {panel.text}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+  // Preview Screen Component
+  const PreviewScreen = () => (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold text-center mb-8">マンガクリエーター</h1>
+      
+      <div className="flex justify-between mb-6">
+        <h2 className="text-2xl font-semibold">プレビュー</h2>
+        <button 
+          onClick={goToUploadScreen}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          編集画面に戻る
+        </button>
+      </div>
+      
+      {panels.length > 0 ? (
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="max-w-2xl mx-auto">
+            {panels.map((panel, index) => (
+              <div key={panel.id} className="mb-6 relative">
+                <img 
+                  src={panel.imageUrl} 
+                  alt={`Panel ${index + 1}`} 
+                  className="w-full h-auto"
+                />
+                {panel.text && (
+                  <div className="absolute top-4 right-4 max-w-[70%] bg-white text-black p-3 rounded-lg border-2 border-black">
+                    {panel.text}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
+        </div>
+      ) : (
+        <div className="text-center p-12 bg-gray-800 rounded-lg">
+          <p className="text-xl">まだパネルがありません。編集画面に戻って画像を追加してください。</p>
         </div>
       )}
     </div>
-  )
+  );
+
+  // Render the current view
+  return currentView === 'upload' ? <UploadScreen /> : <PreviewScreen />;
 }
 
 export default App
